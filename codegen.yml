@@ -1,0 +1,14 @@
+schema: "graphql/lens-schemas.graphql"
+documents: "graphql/*.graphql"
+generates:
+  graphql/generated.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-react-query
+      - fragment-matcher
+    config:
+      dedupeFragments: true
+      fetcher:
+        func: "./auth-fetcher#fetcher"
+        isReactHook: false
