@@ -2,6 +2,7 @@ import React from 'react'
 import { useAddress, useNetworkMismatch, useNetwork, ConnectWallet, ChainId, MediaRenderer } from "@thirdweb-dev/react"
 import useLensUser from '../lib/auth/useLensUser';
 import useLogin from '../lib/auth/useLogin';
+import Link from 'next/link';
 
 
 type Props = {};
@@ -46,18 +47,20 @@ function SignInButton({}: Props) {
 
     if(profileQuery.data?.defaultProfile){
         return(
-            <div>
-                Hello {profileQuery.data?.defaultProfile?.handle}
-                <MediaRenderer 
-                    src={profileQuery?.data?.defaultProfile?.picture?.original?.url || ""}
-                    alt={profileQuery?.data?.defaultProfile?.name || ""}
-                    style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: "50%"
-                    }}
-                />
-            </div>
+            <Link href={"/profile/my-profile"}>
+                <div>
+                    Hello {profileQuery.data?.defaultProfile?.handle}
+                    <MediaRenderer 
+                        src={profileQuery?.data?.defaultProfile?.picture?.original?.url || ""}
+                        alt={profileQuery?.data?.defaultProfile?.name || ""}
+                        style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: "50%"
+                        }}
+                    />
+                </div>
+            </Link>
         ) 
     }
 

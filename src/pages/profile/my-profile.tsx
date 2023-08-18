@@ -1,32 +1,45 @@
 import styles from "../../styles/Profile.module.css"
-import { useDoesFollowQuery, useProfileQuery, usePublicationsQuery } from '../../../graphql/generated'
-import { useRouter } from "next/router"
+import { useFollowingQuery, useProfileQuery, usePublicationsQuery, useFollowersQuery } from '../../../graphql/generated'
 import { MediaRenderer, Web3Button, useAddress } from "@thirdweb-dev/react";
 import FeedPost from "../../components/FeedPost"
 import { POLYGON_CONTRACT_ABI, POLYGON_CONTRACT_ADDRESS } from "../../constants/polygonContracts";
 import { MUMBAI_CONTRACT_ABI, MUMBAI_CONTRACT_ADDRESS } from "../../constants/mumbaiContracts";
-import { useFollow } from "../../lib/useFollow";
-import { useUnfollow } from "../../lib/useUnfollow";
+import useLensUser from "../../lib/auth/useLensUser";
+import { useState } from "react"
 
 
-const ProfilePage = () => {
-
-    const router = useRouter();
-    const { id } = router.query
-
-    const {mutateAsync: followUser} = useFollow();
-    const {mutateAsync: unfollowUser} = useUnfollow();
+const MyProfilePage = () => {
+    const {isSignedInQuery, profileQuery} = useLensUser();
     const address = useAddress();
-    var doesFollowUser:Boolean | undefined = false;
+    const [viewFollowing, setViewFollowing] = useState<Boolean>(false);
+    const [viewFollowers, setViewFollowers] = useState<Boolean>(false);
 
     const { isLoading: loadingProfile, data: profileData, error: profileError} = useProfileQuery(
     {
         request: {
-            handle: id
+            handle: profileQuery.data?.defaultProfile?.handle
         }
     },
     {
-        enabled: !!id
+        enabled: !!profileQuery.data?.defaultProfile?.handle
+    })
+
+    const followersQuery = useFollowersQuery({
+        request: {
+            profileId: profileData?.profile?.id
+        }
+    },
+    {
+        enabled: !!profileData?.profile?.id
+    })
+
+    const followingQuery = useFollowingQuery({
+        request: {
+            address: address
+        }
+    },
+    {
+        enabled: !!address
     })
 
     const { isLoading: isLoadingPublications, data: publicationsData, error: publicationsError } = usePublicationsQuery(
@@ -39,19 +52,7 @@ const ProfilePage = () => {
         enabled: !!profileData?.profile?.id
     })
 
-    const followQuery = useDoesFollowQuery({
-        request: {
-            followInfos: [
-                {
-                    followerAddress: address,
-                    profileId: profileData?.profile?.id
-                }
-            ]
-        }
-    },
-    {
-        enabled: address !== undefined && profileData?.profile?.id!==undefined
-    });
+    
 
     if(publicationsError || profileError){
         return <div>Could not find this profile</div>
@@ -59,10 +60,6 @@ const ProfilePage = () => {
 
     if(loadingProfile){
         return <div>Loading profile...</div>
-    }
-
-    if(address){
-        doesFollowUser = followQuery?.data?.doesFollow[0]?.follows;
     }
 
   return (
@@ -92,24 +89,38 @@ const ProfilePage = () => {
 
             <p className={styles.followCount}>{profileData?.profile?.stats.totalFollowers}{" followers"}</p>
 
+            <button onClick={() => setViewFollowers(!viewFollowers)}>
+                View followers users
+            </button>
+
+            <button onClick={() => setViewFollowing(!viewFollowing)}>
+                View following users
+            </button>
+            
             {
-                doesFollowUser
-                    ?   <Web3Button 
-                            contractAddress={MUMBAI_CONTRACT_ADDRESS}
-                            contractAbi={MUMBAI_CONTRACT_ABI}
-                            action={async () => await unfollowUser(profileData?.profile?.id)}
-                            style={{backgroundColor: "red"}}
-                        >
-                            Unfollow -
-                        </Web3Button>
-                    :   <Web3Button 
-                            contractAddress={MUMBAI_CONTRACT_ADDRESS}
-                            contractAbi={MUMBAI_CONTRACT_ABI}
-                            action={async () => await followUser(profileData?.profile?.id)}
-                            style={{backgroundColor: "green"}}
-                        >
-                            Follow +
-                        </Web3Button>
+                viewFollowers 
+                    ? followersQuery.data?.followers.items.map((profile, index) => {
+                        return(
+                            <div style={{display: "flex"}} key={index}>
+                                <img src={profile.wallet?.defaultProfile?.picture?.original.url} style={{height: 36, width: 36, borderRadius: "50%"}}></img>
+                                <p>{profile.wallet?.defaultProfile?.handle}</p>
+                            </div>
+                        )
+                    })
+                    : <></>
+            }
+
+            {
+                viewFollowing 
+                    ? followingQuery.data?.following.items.map((profile, index) => {
+                        return(
+                            <div style={{display: "flex"}} key={index}>
+                                <img src={profile.profile?.picture?.original.url} style={{height: 36, width: 36, borderRadius: "50%"}}></img>
+                                <p>{profile.profile?.handle}</p>
+                            </div>
+                        )
+                    })
+                    : <></>
             }
 
             <div className={styles.publicationsContainer}>
@@ -125,4 +136,4 @@ const ProfilePage = () => {
   )
 }
 
-export default ProfilePage
+export default MyProfilePage

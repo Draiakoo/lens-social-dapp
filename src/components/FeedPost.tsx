@@ -3,12 +3,20 @@ import Link from "next/link";
 import React from "react";
 import { ExplorePublicationsQuery } from '../../graphql/generated'
 import styles from "../styles/FeedPost.module.css";
+import { useMirror } from "../lib/useMirror";
 
 type Props = {
   publication: ExplorePublicationsQuery["explorePublications"]["items"][0];
 };
 
 export default function FeedPost({ publication }: Props) {
+
+  const {mutateAsync: mirrorUser} = useMirror();
+
+  const profileId = publication.profile.id
+  const publicationId = publication.id
+
+  console.log(publication)
 
   return (
     <div className={styles.feedPostContainer}>
@@ -55,9 +63,15 @@ export default function FeedPost({ publication }: Props) {
       </div>
 
       <div className={styles.feedPostFooter}>
-        <p>{publication.stats.totalAmountOfCollects} Collects</p>
-        <p>{publication.stats.totalAmountOfComments} Comments</p>
-        <p>{publication.stats.totalAmountOfMirrors} Mirrors</p>
+        <button onClick={() => console.log("Collect publication function")}>
+          {publication.stats.totalAmountOfCollects} Collects
+        </button>
+        <button onClick={() => console.log("Comment publication function")}>
+          {publication.stats.totalAmountOfComments} Comments
+        </button>
+        <button onClick={() => mirrorUser({profileId, publicationId})}>
+          {publication.stats.totalAmountOfMirrors} Mirrors
+        </button>
       </div>
     </div>
   );

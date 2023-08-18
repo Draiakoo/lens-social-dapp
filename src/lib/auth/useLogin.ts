@@ -18,7 +18,7 @@ export default function useLogin() {
         //Generate challenge with the user's wallet
         const {challenge} = await generateChallenge(address);
 
-        //Sign the chllange with the user's wallet
+        //Sign the challange with the user's wallet
         const signature = await sdk?.wallet.sign(challenge.text);
 
         //Send the signed challenge to the Lens API and receive a access token from the Lens API if success
@@ -28,8 +28,6 @@ export default function useLogin() {
                 signature
             }
         })
-
-        console.log("Authenticated:", authenticate);
 
         //Store the access token inside local storage
         const { accessToken, refreshToken } = authenticate;

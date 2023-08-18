@@ -57,6 +57,8 @@ export default function useCreatePost() {
     //Ask Lens to provide the typed data
     const typedData = await requestTypedData({
       request: {
+        profileId: profileQuery.data?.defaultProfile?.id,
+        contentURI: postMetadataIpfsUrl,
         collectModule: {
           freeCollectModule: {
             followerOnly: false,
@@ -65,8 +67,6 @@ export default function useCreatePost() {
         referenceModule: {
           followerOnlyReferenceModule: false,
         },
-        contentURI: postMetadataIpfsUrl,
-        profileId: profileQuery.data?.defaultProfile?.id,
       },
     });
 
